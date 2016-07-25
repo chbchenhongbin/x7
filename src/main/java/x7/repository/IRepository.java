@@ -225,4 +225,12 @@ public interface IRepository {
 	 * 
 	 */
 	Pagination<Map<String,Object>> list(CriteriaJoinable criterionJoinable, Pagination<Map<String,Object>> pagination);
+	
+	/**
+	 * 
+	 * 不要通过WEB传来的参数调用此接口, 因为没有分页限制
+	 * @param criterionJoinable
+	 * 
+	 */
+	List<Map<String,Object>> list(CriteriaJoinable criteriaJoinable);
 }

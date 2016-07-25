@@ -1,10 +1,10 @@
 package x7.repository;
 
 import x7.core.config.Configs;
+import x7.repository.mysql.Daos;
+import x7.repository.mysql.SyncDao;
 import x7.repository.mysql.pool.C3P0Pool;
 import x7.repository.redis.CacheResolver;
-import xy.repository.mysql.Daos;
-import xy.repository.mysql.SyncDao;
 
 public class RepositoryBooter {
 	

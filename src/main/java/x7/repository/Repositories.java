@@ -19,8 +19,8 @@ import x7.core.repository.Persistence;
 import x7.core.web.Pagination;
 import x7.repository.exception.PersistenceException;
 import x7.repository.exception.ShardingException;
-import xy.repository.mysql.IShardingDao;
-import xy.repository.mysql.ISyncDao;
+import x7.repository.mysql.IShardingDao;
+import x7.repository.mysql.ISyncDao;
 
 
 
@@ -1172,9 +1172,24 @@ public class Repositories implements IRepository {
 
 		if (parsed.isSharding()) {
 			throw new ShardingException(
-					"Sharding not supported: Pagination<T> list(CriteriaJoinable criteriaJoinable, Pagination<T> pagination)");
+					"Sharding not supported: Pagination<Map<String, Object>> list(CriteriaJoinable criteriaJoinable, Pagination<Map<String, Object>> pagination)");
 		} else {
 			return syncDao.list(criteriaJoinable, pagination);
+		}
+	}
+
+	@Override
+	public List<Map<String, Object>> list(CriteriaJoinable criteriaJoinable) {
+
+		Class clz = criteriaJoinable.getClass();
+		Parsed parsed = Parser.get(clz);
+		
+
+		if (parsed.isSharding()) {
+			throw new ShardingException(
+					"Sharding not supported: List<Map<String, Object>> list(CriteriaJoinable criteriaJoinable)");
+		} else {
+			return syncDao.list(criteriaJoinable);
 		}
 	}
 }
