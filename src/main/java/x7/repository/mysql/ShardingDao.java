@@ -190,7 +190,7 @@ public class ShardingDao implements IShardingDao {
 
 		Parsed parsed = Parser.get(clz);
 
-		Map<String,Object> queryMap = BeanUtilX.getQueryMap(parsed, obj);
+		Map<String,Object> queryMap = BeanUtilX.getRefreshMap(parsed, obj);
 		
 		String tableName = BeanSqlMapper_Sharding.getTableName(clz);
 		StringBuilder sb = new StringBuilder();
@@ -256,7 +256,7 @@ public class ShardingDao implements IShardingDao {
 
 		Parsed parsed = Parser.get(clz);
 
-		Map<String,Object> queryMap = BeanUtilX.getQueryMap(parsed, obj);
+		Map<String,Object> queryMap = BeanUtilX.getRefreshMap(parsed, obj);
 		
 		String tableName = BeanSqlMapper_Sharding.getTableName(clz);
 		StringBuilder sb = new StringBuilder();

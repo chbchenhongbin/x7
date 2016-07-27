@@ -231,7 +231,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 		Parsed parsed = Parser.get(clz);
 
-		Map<String, Object> queryMap = BeanUtilX.getQueryMap(parsed, obj);
+		Map<String, Object> queryMap = BeanUtilX.getRefreshMap(parsed, obj);
 
 		String tableName = BeanSqlMapper.getTableName(clz);
 		StringBuilder sb = new StringBuilder();
@@ -1697,7 +1697,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 		Parsed parsed = Parser.get(clz);
 
-		Map<String, Object> queryMap = BeanUtilX.getQueryMap(parsed, obj);
+		Map<String, Object> queryMap = BeanUtilX.getRefreshMap(parsed, obj);
 
 		String tableName = BeanSqlMapper.getTableName(clz);
 		StringBuilder sb = new StringBuilder();
