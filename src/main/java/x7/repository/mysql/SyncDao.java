@@ -36,8 +36,8 @@ public class SyncDao implements ISyncDao{
 
 
 	@Override
-	public void remove(Object obj) {
-		this.dao.remove(obj);
+	public boolean remove(Object obj) {
+		return this.dao.remove(obj);
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class SyncDao implements ISyncDao{
 	}
 
 	@Override
-	public <T> List<T> list(Class<T> clz, String sql, List<Object> conditionList) {
+	public List<Map<String,Object>>  list(Class clz, String sql, List<Object> conditionList) {
 		return this.dao.list(clz, sql, conditionList);
 	}
 
@@ -113,9 +113,9 @@ public class SyncDao implements ISyncDao{
 	}
 
 	@Override
-	public void refresh(Object obj) {
+	public boolean refresh(Object obj) {
 		
-		this.dao.refresh(obj);
+		return this.dao.refresh(obj);
 		
 	}
 

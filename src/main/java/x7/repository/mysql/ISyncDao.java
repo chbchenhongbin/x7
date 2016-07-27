@@ -23,11 +23,11 @@ public interface ISyncDao {
 	 * 对于可能重置为0的数字，或Boolean类型，不能使用JAVA基本类型
 	 * @param obj
 	 */
-	void refresh(Object obj);
+	boolean refresh(Object obj);
 	
 	boolean refresh(Object obj, Map<String,Object> conditionMap);
 
-	void remove(Object obj);
+	boolean remove(Object obj);
 	
 	/**
 	 * 适合单主键
@@ -87,7 +87,7 @@ public interface ISyncDao {
 	 * @param sql
 	 * 
 	 */
-	<T> List<T> list(Class<T> clz, String sql,
+	List<Map<String,Object>>  list(Class clz, String sql,
 			List<Object> conditionList);
 
 	/**

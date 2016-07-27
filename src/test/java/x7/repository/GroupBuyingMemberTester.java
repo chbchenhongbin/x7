@@ -2,7 +2,6 @@ package x7.repository;
 
 import java.util.Date;
 
-import com.igoxin.bean.entity.groupbuying.GroupBuyingMember;
 
 import x7.config.ConfigBuilder;
 
@@ -25,7 +24,9 @@ public class GroupBuyingMemberTester {
 		member.setRefreshTime(date);
 		member.setOrderTime(date);
 		
-		Repositories.getInstance().create(member);
+		boolean flag = Repositories.getInstance().refresh(member);
+		
+		System.out.println("------------ flag = " + flag);
 		
 	}
 }

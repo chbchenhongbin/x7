@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -221,7 +222,7 @@ public class SyncDaoSQL implements ISyncDao {
 		return id;
 	}
 
-	public void refresh(Object obj) {
+	public boolean refresh(Object obj) {
 
 		@SuppressWarnings("rawtypes")
 		Class clz = obj.getClass();
@@ -239,6 +240,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 		// System.out.println("refreshOptionally: " + sql);
 
+		boolean flag = false;
 		boolean isNoBizTx = false;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -264,7 +266,8 @@ public class SyncDaoSQL implements ISyncDao {
 			Field keyTwoF = parsed.getKeyField(Persistence.KEY_TWO);
 			SqlUtil.adpterSqlKey(pstmt, keyOneF, keyTwoF, obj, i);
 
-			pstmt.execute();
+			
+			flag = pstmt.executeUpdate() == 0 ? false : true;
 
 			if (isNoBizTx) {
 				conn.commit();
@@ -294,10 +297,11 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 		}
 
+		return flag;
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void remove(Object obj) {
+	public boolean remove(Object obj) {
 
 		Class clz = obj.getClass();
 
@@ -305,6 +309,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 		String sql = BeanSqlMapper.getSql(clz, SqlKey.REMOVE);
 
+		boolean flag = false;
 		boolean isNoBizTx = false;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -325,7 +330,7 @@ public class SyncDaoSQL implements ISyncDao {
 			SqlUtil.adpterSqlKey(pstmt, parsed.getKeyField(Persistence.KEY_ONE),
 					parsed.getKeyField(Persistence.KEY_TWO), obj, i);
 
-			pstmt.execute();
+			flag = pstmt.executeUpdate() == 0 ? false : true;
 
 			if (isNoBizTx) {
 				conn.commit();
@@ -355,6 +360,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 		}
 
+		return flag;
 	}
 
 	@Override
@@ -573,17 +579,15 @@ public class SyncDaoSQL implements ISyncDao {
 		return list.get(0);
 	}
 
-	public <T> List<T> list(Class<T> clz, String sql, List<Object> conditionList) {
+	public List<Map<String,Object>> list(Class clz, String sql, List<Object> conditionList) {
 
 		filterTryToCreate(clz);
 
-		List<T> list = new ArrayList<T>();
-
-		List<BeanElement> eles = BeanSqlMapper.getElementList(clz);
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		BeanElement tempEle = null;
+
 		try {
 			conn = getConnection(true);
 			conn.setAutoCommit(true);
@@ -595,38 +599,23 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 
 			ResultSet rs = pstmt.executeQuery();
+
 			if (rs != null) {
 				while (rs.next()) {
-					T obj = clz.newInstance();
-					list.add(obj);
-					for (BeanElement ele : eles) {
-						Method method = ele.setMethod;
-						// try {
-						// method =
-						// obj.getClass().getSuperclass().getDeclaredMethod(ele.setter,
-						// ele.clz);
-						// } catch (NoSuchMethodException e) {
-						// method = obj.getClass().getDeclaredMethod(ele.setter,
-						// ele.clz);
-						// }
-						if (ele.clz.getSimpleName().toLowerCase().equals("double")) {
-							Object v = rs.getObject(ele.property);
-							if (v != null) {
-								method.invoke(obj, Double.valueOf(String.valueOf(v)));
-							}
-						} else {
-							tempEle = ele;
-							method.invoke(obj, rs.getObject(ele.property));
-						}
+					Map<String, Object> mapR = new HashMap<String, Object>();
+					list.add(mapR);
+					ResultSetMetaData rsmd = rs.getMetaData();
+					int count = rsmd.getColumnCount();
+					for (i = 1; i <= count; i++) {
+						String key = rsmd.getColumnLabel(i);
+						String value = rs.getString(i);
+						mapR.put(key, value);
 					}
+
 				}
 			}
 
 		} catch (Exception e) {
-			if (tempEle != null) {
-				System.out
-						.println("Exception occured by class = " + clz.getName() + ", property = " + tempEle.property);
-			}
 			e.printStackTrace();
 		} finally {
 			try {

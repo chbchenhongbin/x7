@@ -36,7 +36,7 @@ public interface IRepository {
 	 * 更新, 支持局部更新
 	 * @param obj
 	 */
-	void refresh(Object obj);
+	boolean refresh(Object obj);
 	
 	/**
 	 * 带条件支持局部更新
@@ -50,7 +50,7 @@ public interface IRepository {
 	 * 删除
 	 * @param obj
 	 */
-	void remove(Object obj);
+	boolean remove(Object obj);
 
 	/**
 	 * 根据主键查询
@@ -132,7 +132,7 @@ public interface IRepository {
 	 * 
 	 */
 	@Deprecated
-	<T> List<T> list(Class<T> clz, String sql, List<Object> conditionList);
+	List<Map<String,Object>> list(Class clz, String sql, List<Object> conditionList);
 	
 	/**
 	 * loadAll

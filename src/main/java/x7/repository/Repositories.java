@@ -22,13 +22,12 @@ import x7.repository.exception.ShardingException;
 import x7.repository.mysql.IShardingDao;
 import x7.repository.mysql.ISyncDao;
 
-
-
 /**
  * <br>
  * 持久化<br>
  * 各种操作的封装<br>
  * <br>
+ * 
  * @author Sim
  *
  */
@@ -283,21 +282,24 @@ public class Repositories implements IRepository {
 	}
 
 	@Override
-	public void refresh(Object obj) {
+	public boolean refresh(Object obj) {
+		boolean flag = false;
 		Class clz = obj.getClass();
 		Parsed parsed = Parser.get(clz);
 		if (parsed.isSharding()) {
-			shardingDao.refresh(obj);
+			shardingDao.refresh(obj);//FIXME
 		} else {
-			syncDao.refresh(obj);
+			flag = syncDao.refresh(obj);
 		}
-		String key = getCacheKey(obj, parsed);
-		if (cacheResolver != null && !parsed.isNoCache()) {
-			if (key != null)
-				cacheResolver.remove(clz, key);
-			cacheResolver.markForRefresh(clz);
+		if (flag) {
+			String key = getCacheKey(obj, parsed);
+			if (cacheResolver != null && !parsed.isNoCache()) {
+				if (key != null)
+					cacheResolver.remove(clz, key);
+				cacheResolver.markForRefresh(clz);
+			}
 		}
-
+		return flag;
 	}
 
 	@Override
@@ -310,13 +312,14 @@ public class Repositories implements IRepository {
 		} else {
 			flag = syncDao.refresh(obj, conditionMap);
 		}
-		String key = getCacheKey(obj, parsed);
-		if (cacheResolver != null && !parsed.isNoCache()) {
-			if (key != null)
-				cacheResolver.remove(clz, key);
-			cacheResolver.markForRefresh(clz);
+		if (flag) {
+			String key = getCacheKey(obj, parsed);
+			if (cacheResolver != null && !parsed.isNoCache()) {
+				if (key != null)
+					cacheResolver.remove(clz, key);
+				cacheResolver.markForRefresh(clz);
+			}
 		}
-
 		return flag;
 	}
 
@@ -334,20 +337,24 @@ public class Repositories implements IRepository {
 	}
 
 	@Override
-	public void remove(Object obj) {
+	public boolean remove(Object obj) {
+		boolean flag = false;
 		Class clz = obj.getClass();
 		Parsed parsed = Parser.get(clz);
 		if (parsed.isSharding()) {
-			shardingDao.remove(obj);
+			shardingDao.remove(obj);//FIXME
 		} else {
-			syncDao.remove(obj);
+			flag = syncDao.remove(obj);
 		}
-		String key = getCacheKey(obj, parsed);
-		if (cacheResolver != null && !parsed.isNoCache()) {
-			if (key != null)
-				cacheResolver.remove(clz, key);
-			cacheResolver.markForRefresh(clz);
+		if (flag) {
+			String key = getCacheKey(obj, parsed);
+			if (cacheResolver != null && !parsed.isNoCache()) {
+				if (key != null)
+					cacheResolver.remove(clz, key);
+				cacheResolver.markForRefresh(clz);
+			}
 		}
+		return flag;
 	}
 
 	@Override
@@ -583,14 +590,14 @@ public class Repositories implements IRepository {
 				String key = getCacheKey(t, parsed);
 				keyList.add(key);
 			}
-			
+
 			pagination.setList(null);
 
 			cacheResolver.setResultKeyListPaginated(clz, condition, pagination);
 
 			pagination.setKeyList(null);
 			pagination.setList(list);
-			
+
 			return pagination;
 		}
 
@@ -659,7 +666,7 @@ public class Repositories implements IRepository {
 				String key = getCacheKey(t, parsed);
 				keyList.add(key);
 			}
-			
+
 			pagination.setList(null);
 
 			cacheResolver.setResultKeyListPaginated(clz, condition, pagination);
@@ -715,7 +722,7 @@ public class Repositories implements IRepository {
 
 		String condition = criteria.toString() + pagination.toString();
 
-		Pagination<T> p = cacheResolver.getResultKeyListPaginated(clz, condition);// FIXME																				
+		Pagination<T> p = cacheResolver.getResultKeyListPaginated(clz, condition);// FIXME
 
 		if (p == null) {
 			if (parsed.isSharding()) {
@@ -730,11 +737,11 @@ public class Repositories implements IRepository {
 			List<String> keyList = pagination.getKeyList();
 
 			for (T t : list) {
-	
+
 				String key = getCacheKey(t, parsed);
 				keyList.add(key);
 			}
-			
+
 			pagination.setList(null);
 
 			cacheResolver.setResultKeyListPaginated(clz, condition, pagination);
@@ -773,55 +780,12 @@ public class Repositories implements IRepository {
 
 	@Deprecated
 	@Override
-	public <T> List<T> list(Class<T> clz, String sql, List<Object> conditionList) {
+	public List<Map<String,Object>>  list(Class clz, String sql, List<Object> conditionList) {
 
 		Parsed parsed = Parser.get(clz);
 
-		if (cacheResolver == null || parsed.isNoCache()) {
-			if (parsed.isSharding()) {
-				throw new ShardingException(
-						"Sharding not supported: List<T> list(Class<T> clz, String sql, List<Object> conditionList)");
-			} else {
-				return syncDao.list(clz, sql, conditionList);
-			}
-		}
+		return syncDao.list(clz, sql, conditionList);
 
-		List<T> list = null;
-
-		String condition = sql + "_" + conditionList.toString();
-
-		List<String> keyList = cacheResolver.getResultKeyList(clz, condition);
-
-		if (keyList == null || keyList.isEmpty()) {
-			if (parsed.isSharding()) {
-				throw new ShardingException(
-						"Sharding not supported: List<T> list(Class<T> clz, String sql, List<Object> conditionList)");
-			} else {
-				list = syncDao.list(clz, sql, conditionList);
-			}
-
-			keyList = new ArrayList<String>();
-
-			for (T t : list) {
-				String key = getCacheKey(t, parsed);
-				keyList.add(key);
-			}
-
-			cacheResolver.setResultKeyList(clz, condition, keyList);
-
-			return list;
-		}
-
-		list = cacheResolver.list(clz, keyList);// FIXME 可能要先转Object
-
-		if (keyList.size() == list.size())
-			return list;
-
-		replenishAndRefreshCache(keyList, list, clz, parsed);
-
-		List<T> sortedList = sort(keyList, list, parsed);
-
-		return sortedList;
 	}
 
 	@Override
@@ -1040,6 +1004,7 @@ public class Repositories implements IRepository {
 		});
 
 	}
+
 	protected <T> boolean execute(Object obj, String sql) {
 
 		boolean b;
@@ -1050,10 +1015,12 @@ public class Repositories implements IRepository {
 			b = syncDao.execute(obj, sql);
 		}
 
-		String key = getCacheKey(obj, parsed);
-		if (cacheResolver != null && !parsed.isNoCache()) {
-			if (key != null) {
-				cacheResolver.remove(obj.getClass(), key);
+		if (b) {
+			String key = getCacheKey(obj, parsed);
+			if (cacheResolver != null && !parsed.isNoCache()) {
+				if (key != null) {
+					cacheResolver.remove(obj.getClass(), key);
+				}
 			}
 		}
 
@@ -1165,10 +1132,11 @@ public class Repositories implements IRepository {
 			Pagination<Map<String, Object>> pagination) {
 		Class clz = criteriaJoinable.getClass();
 		Parsed parsed = Parser.get(clz);
-		
-//		if (criteriaJoinable.isUnReasonable()) {
-//			throw new PersistenceException("No join, try to invoke list(Criteria criteria,Pagination<Map<String, Object>> pagination)");
-//		}
+
+		// if (criteriaJoinable.isUnReasonable()) {
+		// throw new PersistenceException("No join, try to invoke list(Criteria
+		// criteria,Pagination<Map<String, Object>> pagination)");
+		// }
 
 		if (parsed.isSharding()) {
 			throw new ShardingException(
@@ -1183,7 +1151,6 @@ public class Repositories implements IRepository {
 
 		Class clz = criteriaJoinable.getClass();
 		Parsed parsed = Parser.get(clz);
-		
 
 		if (parsed.isSharding()) {
 			throw new ShardingException(

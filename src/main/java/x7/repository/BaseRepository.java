@@ -473,22 +473,6 @@ public class BaseRepository {
 	}
 	
 
-
-
-	/**
-	 * 手写SQL语句，只能返回对�?,例如: .... id = ? AND name = ?, list[id,name]
-	 * 
-	 * @param clz
-	 * @param sql
-	 * @param conditionList
-	 * 
-	 */
-	@Deprecated
-	public <T> List<T> list(Class<T> clz, String sql, List<Object> conditionList) {
-
-		return Repositories.getInstance().list(clz, sql, conditionList);
-	}
-
 	/**
 	 * 获取�?大ID
 	 * 
