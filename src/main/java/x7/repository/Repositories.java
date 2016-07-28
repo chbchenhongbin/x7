@@ -783,8 +783,30 @@ public class Repositories implements IRepository {
 	public List<Map<String,Object>>  list(Class clz, String sql, List<Object> conditionList) {
 
 		Parsed parsed = Parser.get(clz);
+		
+		if (cacheResolver == null || parsed.isNoCache()) {
+			if (parsed.isSharding()) {
+				throw new ShardingException(
+						"Sharding not supported: List<Map<String,Object>>  list(Class<T> clz, String sql, List<Object> conditionList)");
+			} else {
+				return syncDao.list(clz, sql, conditionList);
+			}
+		}
+		
+		String condition = sql + conditionList.toString();
+		
+		
+		List<Map<String,Object>> mapList = cacheResolver.getMapList(clz, condition);
+		
+		if (mapList == null) {
+			mapList = syncDao.list(clz, sql, conditionList);
+			
+			if (mapList != null) {
+				cacheResolver.setMapList(clz, condition, mapList);
+			}
+		}
 
-		return syncDao.list(clz, sql, conditionList);
+		return mapList;
 
 	}
 
@@ -796,7 +818,7 @@ public class Repositories implements IRepository {
 		if (cacheResolver == null || parsed.isNoCache()) {
 			if (parsed.isSharding()) {
 				throw new ShardingException(
-						"Sharding not supported: List<T> list(Class<T> clz, String sql, List<Object> conditionList)");
+						"Sharding not supported: List<T> list(Class<T> clz)");
 			} else {
 				return syncDao.list(clz);
 			}
