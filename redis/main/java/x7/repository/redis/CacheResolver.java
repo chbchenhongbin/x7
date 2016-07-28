@@ -2,6 +2,7 @@ package x7.repository.redis;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import x7.core.config.Configs;
 import x7.core.repository.ICacheResolver;
@@ -212,6 +213,25 @@ public class CacheResolver implements ICacheResolver{
 			return null;
 		T obj = PersistenceUtil.toObject(clz, bytes);
 		return obj;
+	}
+
+	@Override
+	public void setMapList(Class clz, String key, List<Map<String, Object>> mapList) {
+		key = getSimpleKey(clz, key);
+		int validSecond =  getValidSecondAdjusted();
+		
+		JedisConnector_Cache.getInstance().set(key.getBytes(), PersistenceUtil.toBytes(mapList), validSecond);
+	}
+
+	@Override
+	public List<Map<String, Object>> getMapList(Class clz, String key) {
+		
+		key = getSimpleKey(clz,key);
+		byte[] bytes = JedisConnector_Cache.getInstance().get(key.getBytes());
+		if (bytes == null)
+			return null;
+		List<Map<String, Object>> mapList = PersistenceUtil.toObject(List.class, bytes);
+		return mapList;
 	}
 
 
