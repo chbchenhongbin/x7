@@ -167,4 +167,15 @@ public class SqlUtil {
 		}
 	}
 	
+	public static Object filter(Object value) {
+		
+		if (value instanceof String){
+			String str = (String)value;
+			value = str.replace("<", "&lt").replace(">", "&gt");
+		}
+		
+		return value;
+		
+	}
+	
 }

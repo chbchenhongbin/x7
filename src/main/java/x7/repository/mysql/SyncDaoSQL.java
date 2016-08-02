@@ -166,6 +166,8 @@ public class SyncDaoSQL implements ISyncDao {
 						value = 0;
 				}
 
+				value = SqlUtil.filter(value);
+				
 				pstmt.setObject(i++, value);
 
 			}
@@ -256,6 +258,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 			int i = 1;
 			for (Object value : queryMap.values()) {
+				value = SqlUtil.filter(value);
 				pstmt.setObject(i++, value);
 			}
 
@@ -580,7 +583,9 @@ public class SyncDaoSQL implements ISyncDao {
 	}
 
 	public List<Map<String,Object>> list(Class clz, String sql, List<Object> conditionList) {
-
+		
+		sql  = sql.replace("drop"," ").replace("delete"," ").replace("insert"," ").replace(";",""); //手动拼接SQL, 必须考虑应用代码的漏洞
+		
 		filterTryToCreate(clz);
 
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
@@ -1037,7 +1042,7 @@ public class SyncDaoSQL implements ISyncDao {
 		// sql);
 
 		String countSql = sql.replace(Persistence.PAGINATION, "COUNT(*) count");
-		int count = getCount(countSql, queryMap);
+		long count = getCount(countSql, queryMap);
 
 		pagination.setTotalRows(count);
 		int page = pagination.getPage();
@@ -1123,14 +1128,14 @@ public class SyncDaoSQL implements ISyncDao {
 		Class clz = criteria.getClz();
 		filterTryToCreate(clz);
 
-		Map<String, Object> map = criteria.getConditionMap();
+		List<Object> valueList = criteria.getValueList();
 
 		String[] sqlArr = criteria.getSqlArr();
 
 		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
 
-		long count = getCount(sqlCount, map.values());
+		long count = getCount(sqlCount, valueList);
 
 		pagination.setTotalRows(count);
 		int page = pagination.getPage();
@@ -1148,7 +1153,7 @@ public class SyncDaoSQL implements ISyncDao {
 			pstmt = conn.prepareStatement(sql);
 
 			int i = 1;
-			for (Object obj : map.values()) {
+			for (Object obj : valueList) {
 				pstmt.setObject(i++, obj);
 			}
 
@@ -1335,9 +1340,9 @@ public class SyncDaoSQL implements ISyncDao {
 		return count;
 	}
 
-	public int getCount(String sql, Map<String, Object> queryMap) {
+	public long getCount(String sql, Map<String, Object> queryMap) {
 
-		int count = 0;
+		long count = 0;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
@@ -1353,10 +1358,7 @@ public class SyncDaoSQL implements ISyncDao {
 			ResultSet rs = pstmt.executeQuery();
 
 			if (rs.next()) {
-				Object obj = rs.getObject("count");
-				if (obj != null) {
-					count = ((Long) obj).intValue();
-				}
+				count = rs.getLong("count");
 			}
 
 		} catch (Exception e) {
@@ -1656,6 +1658,9 @@ public class SyncDaoSQL implements ISyncDao {
 	@Deprecated
 	@Override
 	public boolean execute(Object obj, String sql) {
+		
+		sql  = sql.replace("drop"," ").replace("delete"," ").replace("insert"," ").replace(";",""); //手动拼接SQL, 必须考虑应用代码的漏洞
+		
 		boolean b = false;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -1722,6 +1727,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 			int i = 1;
 			for (Object value : queryMap.values()) {
+				value = SqlUtil.filter(value);
 				pstmt.setObject(i++, value);
 			}
 
@@ -2032,14 +2038,14 @@ public class SyncDaoSQL implements ISyncDao {
 		Class clz = criteria.getClz();
 		filterTryToCreate(clz);
 
-		Map<String, Object> map = criteria.getConditionMap();
+		List<Object> valueList = criteria.getValueList();
 
 		String[] sqlArr = criteria.getSqlArr();
 
 		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
 
-		long count = getCount(sqlCount, map.values());
+		long count = getCount(sqlCount, valueList);
 
 		pagination.setTotalRows(count);
 		int page = pagination.getPage();
@@ -2056,7 +2062,7 @@ public class SyncDaoSQL implements ISyncDao {
 			pstmt = conn.prepareStatement(sql);
 
 			int i = 1;
-			for (Object obj : map.values()) {
+			for (Object obj : valueList) {
 				pstmt.setObject(i++, obj);
 			}
 
@@ -2100,7 +2106,7 @@ public class SyncDaoSQL implements ISyncDao {
 		Class clz = criteriaJoinable.getClz();
 		filterTryToCreate(clz);
 
-		Map<String, Object> map = criteriaJoinable.getConditionMap();
+		List<Object> valueList = criteriaJoinable.getValueList();
 
 		String[] sqlArr = criteriaJoinable.getSqlArr();
 
@@ -2115,7 +2121,7 @@ public class SyncDaoSQL implements ISyncDao {
 			pstmt = conn.prepareStatement(sql);
 
 			int i = 1;
-			for (Object obj : map.values()) {
+			for (Object obj : valueList) {
 				pstmt.setObject(i++, obj);
 			}
 
