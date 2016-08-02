@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>x7.repository</groupId>
+  <groupId>x7</groupId>
   <artifactId>x7-repository</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.7</version>
   <packaging>jar</packaging>
 
   <name>x7-repository</name>
@@ -12,14 +12,51 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>       
+    <maven.compiler.target>1.8</maven.compiler.target>       
+    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>  
   </properties>
 
-  <dependencies>
+ <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+    
+    
+    <dependency>
+    	<groupId>x7</groupId>
+    	<artifactId>x7-core</artifactId>
+    	<version>0.0.7</version>
+    	<scope>import</scope>
+    </dependency>
+    
+    <dependency>
+    	<groupId>x7</groupId>
+    	<artifactId>x7-base</artifactId>
+    	<version>0.0.7</version>
+    	<scope>import</scope>
+    </dependency>
+    
+    <dependency>
+    	<groupId>x7</groupId>
+    	<artifactId>x7-config</artifactId>
+    	<version>0.0.7</version>
+    	<scope>import</scope>
+    </dependency>
+    
   </dependencies>
+  
+   <profiles>
+         <profile>
+             <!-- 本地环境 -->
+            <id>local</id>
+             <properties>                
+
+             </properties>
+        </profile>
+   </profiles>
+    
 </project>
