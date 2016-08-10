@@ -93,6 +93,22 @@ public class SyncDaoSQL implements ISyncDao {
 			e.printStackTrace();
 		}
 	}
+	
+	private String[] getResultKey(String key){
+		String[] kArr = new String[2];
+		kArr[0] = key;
+		kArr[1] = key;
+		if (key.contains(" ")){
+			String[] arr = key.split(" ");
+			kArr[0] = arr[1];
+			kArr[1] = arr[1];
+		}else {
+			if (key.contains(".")){
+				kArr[0] = key.substring(key.indexOf(".") + 1);
+			}
+		}
+		return kArr;
+	}
 
 	@SuppressWarnings({ "rawtypes" })
 	public long create(Object obj) {
@@ -1157,10 +1173,8 @@ public class SyncDaoSQL implements ISyncDao {
 				pstmt.setObject(i++, obj);
 			}
 
-			List<String> columnList = criteria.getColumnList();
-			if (columnList.isEmpty()) {
-				columnList = criteria.getAllColumnList();
-			}
+			List<String> columnList = criteria.getAllColumnList();
+	
 			ResultSet rs = pstmt.executeQuery();
 
 			if (rs != null) {
@@ -1297,7 +1311,7 @@ public class SyncDaoSQL implements ISyncDao {
 		Class<?> clz = criteria.getClz();
 		filterTryToCreate(clz);
 
-		Map<String, Object> map = criteria.getConditionMap();
+		List<Object> valueList = criteria.getValueList();
 
 		String[] sqlArr = criteria.getSqlArr();
 
@@ -1315,7 +1329,7 @@ public class SyncDaoSQL implements ISyncDao {
 			pstmt = conn.prepareStatement(sqlSum);
 
 			int i = 1;
-			for (Object o : map.values()) {
+			for (Object o : valueList) {
 				pstmt.setObject(i++, o);
 			}
 
@@ -1778,7 +1792,7 @@ public class SyncDaoSQL implements ISyncDao {
 		Class<?> clz = criteria.getClz();
 		filterTryToCreate(clz);
 
-		Map<String, Object> map = criteria.getConditionMap();
+		List<Object> valueList = criteria.getValueList();
 
 		String[] sqlArr = criteria.getSqlArr();
 
@@ -1796,7 +1810,7 @@ public class SyncDaoSQL implements ISyncDao {
 			pstmt = conn.prepareStatement(sqlSum);
 
 			int i = 1;
-			for (Object o : map.values()) {
+			for (Object o : valueList) {
 				pstmt.setObject(i++, o);
 			}
 			ResultSet rs = pstmt.executeQuery();
@@ -2033,14 +2047,14 @@ public class SyncDaoSQL implements ISyncDao {
 		return this.listX(criteriaJoinable, pagination);
 	}
 
-	private Pagination<Map<String, Object>> listX(Criteria criteria, Pagination<Map<String, Object>> pagination) {
+	private Pagination<Map<String, Object>> listX(CriteriaJoinable criteriaJoinable, Pagination<Map<String, Object>> pagination) {
 
-		Class clz = criteria.getClz();
+		Class clz = criteriaJoinable.getClz();
 		filterTryToCreate(clz);
 
-		List<Object> valueList = criteria.getValueList();
+		List<Object> valueList = criteriaJoinable.getValueList();
 
-		String[] sqlArr = criteria.getSqlArr();
+		String[] sqlArr = criteriaJoinable.getSqlArr();
 
 		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
@@ -2066,10 +2080,12 @@ public class SyncDaoSQL implements ISyncDao {
 				pstmt.setObject(i++, obj);
 			}
 
-			List<String> columnList = criteria.getColumnList();
+
+			List<String> columnList = criteriaJoinable.getColumnList();
 			if (columnList.isEmpty()) {
-				columnList = criteria.getAllColumnList();
+				columnList = criteriaJoinable.getAllColumnList();
 			}
+
 			ResultSet rs = pstmt.executeQuery();
 
 			if (rs != null) {
@@ -2078,7 +2094,8 @@ public class SyncDaoSQL implements ISyncDao {
 					pagination.getList().add(mapR);
 
 					for (String key : columnList) {
-						mapR.put(key, rs.getObject(key));
+						String[] kArr = getResultKey(key);
+						mapR.put(kArr[0], rs.getObject(kArr[1]));
 					}
 
 				}
@@ -2137,7 +2154,8 @@ public class SyncDaoSQL implements ISyncDao {
 					list.add(mapR);
 
 					for (String key : columnList) {
-						mapR.put(key, rs.getObject(key));
+						String[] kArr = getResultKey(key);
+						mapR.put(kArr[0], rs.getObject(kArr[1]));
 					}
 
 				}
