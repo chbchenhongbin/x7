@@ -421,6 +421,10 @@ public class BaseRepository {
 	 * 
 	 */
 	public <T> List<T> list(Object conditionObj) {
+		
+		if (conditionObj instanceof CriteriaJoinable){
+			throw new RuntimeException("Exception supported, to invoke Repositories.getInstance().list(criteriaJoinalbe);");
+		}
 		/*
 		 * FIXME 日志
 		 */

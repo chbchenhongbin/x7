@@ -744,7 +744,7 @@ public class Repositories implements IRepository {
 
 			pagination.setList(null);
 
-			cacheResolver.setResultKeyListPaginated(clz, condition, pagination);
+			cacheResolver.setResultKeyListPaginated(clz, condition, pagination, 10);
 
 			pagination.setKeyList(null);
 			pagination.setList(list);
@@ -1171,7 +1171,7 @@ public class Repositories implements IRepository {
 	@Override
 	public List<Map<String, Object>> list(CriteriaJoinable criteriaJoinable) {
 
-		Class clz = criteriaJoinable.getClass();
+		Class clz = criteriaJoinable.getClz();
 		Parsed parsed = Parser.get(clz);
 
 		if (parsed.isSharding()) {
