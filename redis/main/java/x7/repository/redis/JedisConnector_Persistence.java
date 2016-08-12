@@ -246,7 +246,9 @@ public class JedisConnector_Persistence {
 			if (jedis == null)
 				return isLock;
 			isLock = (jedis.setnx(key, value) == 1);
-			jedis.expire(key, 3); 
+			if (isLock) {
+				jedis.expire(key, 3); 
+			}
 			pool.returnResource(jedis);
 		} catch (Exception e) {
 			pool.returnBrokenResource(jedis);
