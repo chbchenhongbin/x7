@@ -423,7 +423,7 @@ public class BaseRepository {
 	public <T> List<T> list(Object conditionObj) {
 		
 		if (conditionObj instanceof CriteriaJoinable){
-			throw new RuntimeException("Exception supported, to invoke Repositories.getInstance().list(criteriaJoinalbe);");
+			throw new RuntimeException("Exception supported, no pagination not to invoke Repositories.getInstance().list(criteriaJoinalbe);");
 		}
 		/*
 		 * FIXME 日志
@@ -674,11 +674,11 @@ public class BaseRepository {
 	}
 	
 	public Object getSum(Object conditionObj, String sumProperty, Criteria criteria) {
-		return Repositories.getInstance().getSum(conditionObj, sumProperty, criteria);
+		return Repositories.getInstance().getSum(sumProperty, criteria);
 	}
     
-	public Object getCount(Object conditionObj, String sumProperty, Criteria criteria){
-		return Repositories.getInstance().getCount(conditionObj, sumProperty, criteria);
+	public Object getCount(String sumProperty, Criteria criteria){
+		return Repositories.getInstance().getCount(sumProperty, criteria);
 	}
 	
 	public <T> List<T> in (Class<T> clz, List<Object> inList){
@@ -707,5 +707,6 @@ public class BaseRepository {
 		 */
 		return Repositories.getInstance().list(criteria, pagination);
 	}
+	
 	
 }
