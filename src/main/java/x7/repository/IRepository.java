@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import x7.core.bean.Criteria;
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.Criteria.Join;
 import x7.core.web.Pagination;
 
 
@@ -206,7 +206,7 @@ public interface IRepository {
 	 * @param criterion
 	 * 
 	 */
-	Object getSum(Object conditionObj, String sumProperty, Criteria criterion);
+	Object getSum(String sumProperty, Criteria criterion);
 	/**
 	 * 条件查询计数
 	 * @param conditionObj
@@ -214,7 +214,7 @@ public interface IRepository {
 	 * @param criteria
 	 * 
 	 */
-	Object getCount(Object conditionObj, String countProperty, Criteria criteria);
+	Object getCount(String countProperty, Criteria criteria);
 	
 	/**
 	 * 连表查询，标准化拼接
@@ -224,7 +224,7 @@ public interface IRepository {
 	 * @param pagination
 	 * 
 	 */
-	Pagination<Map<String,Object>> list(CriteriaJoinable criterionJoinable, Pagination<Map<String,Object>> pagination);
+	Pagination<Map<String,Object>> list(Criteria.Join criterionJoinable, Pagination<Map<String,Object>> pagination);
 	
 	/**
 	 * 
@@ -232,5 +232,5 @@ public interface IRepository {
 	 * @param criterionJoinable
 	 * 
 	 */
-	List<Map<String,Object>> list(CriteriaJoinable criteriaJoinable);
+	List<Map<String,Object>> list(Criteria.Join criteriaJoinable);
 }

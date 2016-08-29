@@ -19,7 +19,8 @@ import com.mysql.jdbc.Statement;
 
 import x7.core.bean.BeanElement;
 import x7.core.bean.Criteria;
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.CriteriaBuilder;
+import x7.core.bean.Criteria.Join;
 import x7.core.bean.Parsed;
 import x7.core.bean.Parser;
 import x7.core.repository.Persistence;
@@ -91,6 +92,16 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private static void close (PreparedStatement pstmt){
+		if (pstmt != null){
+			try{
+				pstmt.close();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -228,11 +239,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 		} finally {
 			if (isNoBizTx) {
-				try {
-					pstmt.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+				close(pstmt);
 				close(conn);
 			}
 		}
@@ -307,11 +314,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 		} finally {
 			if (isNoBizTx) {
-				try {
-					pstmt.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+				close(pstmt);
 				close(conn);
 			}
 		}
@@ -370,11 +373,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 		} finally {
 			if (isNoBizTx) {
-				try {
-					pstmt.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+				close(pstmt);
 				close(conn);
 			}
 		}
@@ -444,11 +443,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -514,11 +509,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -584,11 +575,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -639,11 +626,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -703,11 +686,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -743,11 +722,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -783,11 +758,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -820,11 +791,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -856,12 +823,7 @@ public class SyncDaoSQL implements ISyncDao {
 			e.printStackTrace();
 
 		} finally {
-			try {
-				if (pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 
 		}
@@ -946,11 +908,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1028,11 +986,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1125,11 +1079,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1146,7 +1096,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 		List<Object> valueList = criteria.getValueList();
 
-		String[] sqlArr = criteria.getSqlArr();
+		String[] sqlArr = CriteriaBuilder.parse(criteria);
 
 		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
@@ -1172,8 +1122,6 @@ public class SyncDaoSQL implements ISyncDao {
 			for (Object obj : valueList) {
 				pstmt.setObject(i++, obj);
 			}
-
-			List<String> columnList = criteria.getAllColumnList();
 	
 			ResultSet rs = pstmt.executeQuery();
 
@@ -1209,11 +1157,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1245,11 +1189,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1294,11 +1234,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1306,14 +1242,14 @@ public class SyncDaoSQL implements ISyncDao {
 	}
 
 	@Override
-	public Object getSum(Object conditionObj, String sumProperty, Criteria criteria) {
+	public Object getSum(String sumProperty, Criteria criteria) {
 
 		Class<?> clz = criteria.getClz();
 		filterTryToCreate(clz);
 
 		List<Object> valueList = criteria.getValueList();
 
-		String[] sqlArr = criteria.getSqlArr();
+		String[] sqlArr = CriteriaBuilder.parse(criteria);
 
 		String sqlSum = sqlArr[2];
 
@@ -1343,11 +1279,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1378,11 +1310,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1416,11 +1344,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1463,11 +1387,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1505,11 +1425,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1588,11 +1504,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1653,11 +1565,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1695,11 +1603,7 @@ public class SyncDaoSQL implements ISyncDao {
 				e1.printStackTrace();
 			}
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1774,11 +1678,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 		} finally {
 			if (isNoBizTx) {
-				try {
-					pstmt.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+				close(pstmt);
 				close(conn);
 			}
 		}
@@ -1787,14 +1687,14 @@ public class SyncDaoSQL implements ISyncDao {
 	}
 
 	@Override
-	public Object getCount(Object conditionObj, String countProperty, Criteria criteria) {
+	public Object getCount(String countProperty, Criteria criteria) {
 
 		Class<?> clz = criteria.getClz();
 		filterTryToCreate(clz);
 
 		List<Object> valueList = criteria.getValueList();
 
-		String[] sqlArr = criteria.getSqlArr();
+		String[] sqlArr = CriteriaBuilder.parse(criteria);
 
 		String sqlSum = sqlArr[2];
 
@@ -1823,11 +1723,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -1927,11 +1823,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -2029,11 +1921,7 @@ public class SyncDaoSQL implements ISyncDao {
 			}
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -2041,20 +1929,20 @@ public class SyncDaoSQL implements ISyncDao {
 	}
 
 	@Override
-	public Pagination<Map<String, Object>> list(CriteriaJoinable criteriaJoinable,
+	public Pagination<Map<String, Object>> list(Criteria.Join criteriaJoinable,
 			Pagination<Map<String, Object>> pagination) {
 
 		return this.listX(criteriaJoinable, pagination);
 	}
 
-	private Pagination<Map<String, Object>> listX(CriteriaJoinable criteriaJoinable, Pagination<Map<String, Object>> pagination) {
+	private Pagination<Map<String, Object>> listX(Criteria.Join criteriaJoinable, Pagination<Map<String, Object>> pagination) {
 
 		Class clz = criteriaJoinable.getClz();
 		filterTryToCreate(clz);
 
 		List<Object> valueList = criteriaJoinable.getValueList();
 
-		String[] sqlArr = criteriaJoinable.getSqlArr();
+		String[] sqlArr = CriteriaBuilder.parse(criteriaJoinable);
 
 		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
@@ -2083,7 +1971,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 			List<String> columnList = criteriaJoinable.getColumnList();
 			if (columnList.isEmpty()) {
-				columnList = criteriaJoinable.getAllColumnList();
+				columnList = criteriaJoinable.listAllColumn();
 			}
 
 			ResultSet rs = pstmt.executeQuery();
@@ -2104,11 +1992,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 
@@ -2116,7 +2000,7 @@ public class SyncDaoSQL implements ISyncDao {
 	}
 
 	@Override
-	public List<Map<String, Object>> list(CriteriaJoinable criteriaJoinable) {
+	public List<Map<String, Object>> list(Criteria.Join criteriaJoinable) {
 		
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 		
@@ -2125,9 +2009,8 @@ public class SyncDaoSQL implements ISyncDao {
 
 		List<Object> valueList = criteriaJoinable.getValueList();
 
-		String[] sqlArr = criteriaJoinable.getSqlArr();
+		String[] sqlArr = CriteriaBuilder.parse(criteriaJoinable);
 
-		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
 
 		Connection conn = null;
@@ -2144,7 +2027,7 @@ public class SyncDaoSQL implements ISyncDao {
 
 			List<String> columnList = criteriaJoinable.getColumnList();
 			if (columnList.isEmpty()) {
-				columnList = criteriaJoinable.getAllColumnList();
+				columnList = criteriaJoinable.listAllColumn();
 			}
 			ResultSet rs = pstmt.executeQuery();
 
@@ -2164,11 +2047,7 @@ public class SyncDaoSQL implements ISyncDao {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(pstmt);
 			close(conn);
 		}
 		

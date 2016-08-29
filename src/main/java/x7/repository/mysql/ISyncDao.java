@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import x7.core.bean.Criteria;
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.Criteria.Join;
 import x7.core.web.Pagination;
 
 
@@ -115,9 +115,9 @@ public interface ISyncDao {
 	
 	Object getSum(Object conditionObj, String sumProperty);
 	
-	Object getSum(Object conditionObj, String sumProperty, Criteria criteria);
+	Object getSum(String sumProperty, Criteria criteria);
 	//20160122 add by cl
-	Object getCount(Object conditionObj, String countProperty, Criteria criteria);
+	Object getCount(String countProperty, Criteria criteria);
 	
 	<T> List<T> in(Class<T> clz, List<? extends Object> inList);
 	
@@ -131,7 +131,7 @@ public interface ISyncDao {
 	 * @param pagination
 	 * 
 	 */
-	Pagination<Map<String,Object>> list(CriteriaJoinable criterionJoinable, Pagination<Map<String,Object>> pagination);
+	Pagination<Map<String,Object>> list(Criteria.Join criterionJoinable, Pagination<Map<String,Object>> pagination);
 	
 	/**
 	 * 
@@ -139,5 +139,5 @@ public interface ISyncDao {
 	 * @param criterionJoinable
 	 * 
 	 */
-	List<Map<String,Object>> list(CriteriaJoinable criteriaJoinable);
+	List<Map<String,Object>> list(Criteria.Join criteriaJoinable);
 }

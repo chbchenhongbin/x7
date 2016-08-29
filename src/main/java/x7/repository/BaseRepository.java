@@ -2,15 +2,19 @@ package x7.repository;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
-
+import sun.reflect.generics.reflectiveObjects.TypeVariableImpl;
 import x7.core.bean.Criteria;
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.Criteria.Join;
 import x7.core.bean.IQuantity;
 import x7.core.bean.IdGenerator;
 import x7.core.bean.Parsed;
@@ -19,6 +23,7 @@ import x7.core.repository.IIndexTyped;
 import x7.core.repository.Persistence;
 import x7.core.util.BeanUtil;
 import x7.core.util.BeanUtilX;
+import x7.core.util.StringUtil;
 import x7.core.web.Pagination;
 import x7.core.web.PaginationSorted;
 import x7.repository.exception.PersistenceException;
@@ -33,9 +38,68 @@ import x7.repository.redis.JedisConnector_Persistence;
  *
  */
 @Repository
-public class BaseRepository {
+public abstract class BaseRepository<T> {
 	
 	public final static String ID_MAP_KEY = "ID_MAP_KEY";
+
+	public Map<String, String> map = new HashMap<String,String>();
+	
+	private Class<T> clz;
+	
+	public BaseRepository() {
+        
+	}
+	
+	protected Object preMapping(String methodName, Object...s){
+		System.out.println("----------" + methodName + ", clz = " + clz);
+		
+		Type genType = getClass().getGenericSuperclass();
+		
+		Type[] params = ((ParameterizedType) genType).getActualTypeArguments();  
+		
+		for (Type t : params) {
+			
+			Class ccc = (Class) t;
+			
+			System.out.println();
+		}
+		
+		System.out.println(clz);
+		
+		boolean isOne = methodName.startsWith("get");
+		
+		String sql = map.get(methodName);
+		if (StringUtil.isNullOrEmpty(sql)){
+			
+			
+			methodName = methodName.replace("list", "").replace("get", "").replace("find", "").replace("By", " where ");
+			methodName = methodName.replace("And", " = ? and ").replace("Or", " = ? or ");
+			
+			methodName = methodName.toLowerCase();
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("select * from ").append(methodName).append(" = ?");
+			
+			sql = sb.toString();
+			
+			map.put(methodName, sql);
+			
+		}
+		List<Object> conditionList = Arrays.asList(s);
+		List<T> list = (List<T>) Repositories.getInstance().list(clz ,sql, conditionList);
+		
+		if (isOne){
+			if (list.isEmpty())
+				return null;
+			return list.get(0);
+		}
+		
+		return list;
+	}
+	
+	private void parse(){
+		System.out.println(this.getClass());
+	}
 
 	public void set(byte[] key, byte[] value) {
 		JedisConnector_Persistence.getInstance().set(key, value);
@@ -357,7 +421,7 @@ public class BaseRepository {
 
 	}
 
-	public <T> List<T> list(Class<T> clz, long idOne) {
+	public List<T> list(Class<T> clz, long idOne) {
 		/*
 		 * FIXME 日志
 		 */
@@ -380,7 +444,7 @@ public class BaseRepository {
 	 * @param idOne
 	 * 
 	 */
-	public <T> T get(Class<T> clz, long idOne) {
+	public T get(Class<T> clz, long idOne) {
 		/*
 		 * FIXME 日志
 		 */
@@ -396,7 +460,7 @@ public class BaseRepository {
 	 * @param idOne
 	 * 
 	 */
-	public <T> T get(Class<T> clz, long idOne, long idTwo) {
+	public T get(Class<T> clz, long idOne, long idTwo) {
 		/*
 		 * FIXME 日志
 		 */
@@ -409,7 +473,7 @@ public class BaseRepository {
 	 * @param clz
 	 * @return
 	 */
-	public <T> List<T> list(Class<T> clz) {
+	public List<T> list(Class<T> clz) {
 
 		return Repositories.getInstance().list(clz);
 	}
@@ -420,9 +484,9 @@ public class BaseRepository {
 	 * @param conditionObj
 	 * 
 	 */
-	public <T> List<T> list(Object conditionObj) {
+	public List<T> list(Object conditionObj) {
 		
-		if (conditionObj instanceof CriteriaJoinable){
+		if (conditionObj instanceof Criteria.Join){
 			throw new RuntimeException("Exception supported, no pagination not to invoke Repositories.getInstance().list(criteriaJoinalbe);");
 		}
 		/*
@@ -434,7 +498,7 @@ public class BaseRepository {
 	/**
 	 * 主键查询 分页
 	 */
-	public <T> Pagination<T> list(Class<T> clz, long idOne, Pagination<T> pagination) {
+	public Pagination<T> list(Class<T> clz, long idOne, Pagination<T> pagination) {
 
 		Class clzIndex = BeanUtilX.getIndexClass(clz);
 		if (clzIndex != null) {
@@ -446,20 +510,20 @@ public class BaseRepository {
 		return Repositories.getInstance().list(clz, idOne, pagination);
 	}
 
-	/**
-	 * 根据对象查找，分页?
-	 * 
-	 * @param conditionObj
-	 * @param pagination
-	 * 
-	 */
-	public <T> Pagination<T> list(Object conditionObj, Pagination<T> pagination) {
-
-		/*
-		 * FIXME 日志
-		 */
-		return Repositories.getInstance().list(conditionObj, pagination);
-	}
+//	/**
+//	 * 根据对象查找，分页?
+//	 * 
+//	 * @param conditionObj
+//	 * @param pagination
+//	 * 
+//	 */
+//	public Pagination<T> list(Object conditionObj, Pagination<T> pagination) {
+//
+//		/*
+//		 * FIXME 日志
+//		 */
+//		return Repositories.getInstance().list(conditionObj, pagination);
+//	}
 
 	/**
 	 * 手动拼接SQL查询�? 分页
@@ -468,7 +532,7 @@ public class BaseRepository {
 	 * @param pagination
 	 * 
 	 */
-	public Pagination<Map<String, Object>> list(CriteriaJoinable criteria, Pagination<Map<String, Object>> pagination) {
+	public Pagination<Map<String, Object>> list(Criteria.Join criteria, Pagination<Map<String, Object>> pagination) {
 
 		/*
 		 * FIXME 日志
@@ -484,7 +548,7 @@ public class BaseRepository {
 	 * @param idOne
 	 * 
 	 */
-	public <T> long getMaxId(Class<T> clz, long idOne) {
+	public long getMaxId(Class<T> clz, long idOne) {
 
 		return Repositories.getInstance().getMaxId(clz, idOne);
 	}
@@ -495,7 +559,7 @@ public class BaseRepository {
 	 * @param clz
 	 * 
 	 */
-	public <T> long getMaxId(Class<T> clz) {
+	public long getMaxId(Class<T> clz) {
 		return Repositories.getInstance().getMaxId(clz);
 	}
 
@@ -510,7 +574,7 @@ public class BaseRepository {
 	 * @param idOne
 	 * 
 	 */
-	public <T> long getCount(Class<T> clz, long idOne) {
+	public long getCount(Class<T> clz, long idOne) {
 
 		return Repositories.getInstance().getCount(clz, idOne);
 	}
@@ -519,12 +583,12 @@ public class BaseRepository {
 		return Repositories.getInstance().getCount(conditonObj);
 	}
 
-	public <T> T getOne(T conditionObj, String orderBy, String sc) {
+	public T getOne(T conditionObj, String orderBy, String sc) {
 
 		return Repositories.getInstance().getOne(conditionObj, orderBy, sc);
 	}
 
-	public <T> T getOne(Object conditionObj) {
+	public T getOne(Object conditionObj) {
 
 		List<T> list = Repositories.getInstance().list(conditionObj);
 		if (list.isEmpty())
@@ -557,7 +621,7 @@ public class BaseRepository {
 	 * 按索引查询 分页<BR>
 	 * 注意： ORDER BY 只能按主键
 	 */
-	public <T> void list(IIndexTyped index, Pagination<T> pagination) {
+	public void list(IIndexTyped index, Pagination<T> pagination) {
 
 		BeanUtilX.filter(index);
 
@@ -609,7 +673,7 @@ public class BaseRepository {
 	/**
 	 * 按索引查询 不分页，适合少量数据查询<BR>
 	 */
-	public <T> List<T> list(IIndexTyped index) {
+	public List<T> list(IIndexTyped index) {
 
 		BeanUtilX.filter(index);
 
@@ -621,9 +685,6 @@ public class BaseRepository {
 		List<Object> idList = new ArrayList<Object>();
 		
 		for (IIndexTyped idx : idxList) {
-//			T t = get(beanClz, idx.getId()); // 按主键查询(唯一主键，BIG TABLE, SHARDING)
-//			if (t != null)
-//				list.add(t);
 			
 			if (idx.getId() != 0){
 				idList.add(idx.getId());
@@ -641,7 +702,7 @@ public class BaseRepository {
 	/**
 	 * 按索引查询 不分页，适合少量数据查询<BR>
 	 */
-	public <T> T get(IIndexTyped index) {
+	public T get(IIndexTyped index) {
 
 		BeanUtilX.filter(index);
 
@@ -681,13 +742,13 @@ public class BaseRepository {
 		return Repositories.getInstance().getCount(sumProperty, criteria);
 	}
 	
-	public <T> List<T> in (Class<T> clz, List<Object> inList){
+	public List<T> in (Class<T> clz, List<Object> inList){
 		if (inList.isEmpty())
 			return new ArrayList<T>();
 		return Repositories.getInstance().in(clz, inList);
 	}
 	
-	public <T> List<T> in (Class<T> clz, String inProperty, List<Object> inList){
+	public List<T> in (Class<T> clz, String inProperty, List<Object> inList){
 		if (inList.isEmpty())
 			return new ArrayList<T>();
 		return Repositories.getInstance().in(clz, inProperty, inList);
@@ -700,7 +761,7 @@ public class BaseRepository {
 	 * @param pagination
 	 * 
 	 */
-	public <T> Pagination<T> list(Criteria criteria, Pagination<T> pagination) {
+	public Pagination<T> list(Criteria criteria, Pagination<T> pagination) {
 
 		/*
 		 * FIXME 日志

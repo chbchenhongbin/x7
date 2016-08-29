@@ -8,7 +8,8 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.Criteria;
+import x7.core.bean.Criteria.Join;
 import x7.core.config.Configs;
 import x7.core.util.ClassFileReader;
 import x7.repository.Repositories;
@@ -21,7 +22,7 @@ public class DevServiceImpl implements IDevService{
 	private final Map<String,String> clzNameMap = new HashMap<String,String>();
 
 	@Override
-	public List<Map<String,Object>> test(CriteriaJoinable criteriaJoinable) {
+	public List<Map<String,Object>> test(Criteria.Join criteriaJoinable) {
 		
 		return Repositories.getInstance().list(criteriaJoinable);
 	}

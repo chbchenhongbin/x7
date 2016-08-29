@@ -10,8 +10,10 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
+
 import x7.core.bean.Criteria;
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.CriteriaBuilder;
 import x7.core.bean.Parsed;
 import x7.core.bean.Parser;
 import x7.core.repository.ICacheResolver;
@@ -33,6 +35,7 @@ import x7.repository.mysql.ISyncDao;
  */
 public class Repositories implements IRepository {
 
+	private final static Logger logger = Logger.getLogger(Repositories.class);
 	private static Repositories instance;
 
 	public static Repositories getInstance() {
@@ -46,6 +49,15 @@ public class Repositories implements IRepository {
 	private ISyncDao syncDao;
 
 	public void setSyncDao(ISyncDao syncDao) {
+		System.out.println("---------------init---------------");
+		System.out.println("---------------" + syncDao);
+		System.out.println("---------------init---------------");
+		System.err.println("---------------init---------------");
+		System.err.println("---------------" + syncDao);
+		System.err.println("---------------init---------------");
+		logger.info("---------------init---------------");
+		logger.info("---------------" + syncDao);
+		logger.info("---------------init---------------");
 		this.syncDao = syncDao;
 	}
 
@@ -468,6 +480,9 @@ public class Repositories implements IRepository {
 
 	@Override
 	public <T> List<T> list(Object conditionObj) {
+		
+		if (conditionObj instanceof CriteriaBuilder || conditionObj instanceof Criteria)
+			throw new RuntimeException("Notes: parameter criteriaJoin = criteriaBuilder.get()");
 
 		Class clz = conditionObj.getClass();
 		Parsed parsed = Parser.get(clz);
@@ -917,14 +932,14 @@ public class Repositories implements IRepository {
 	}
 
 	@Override
-	public Object getSum(Object conditionObj, String sumProperty, Criteria criteria) {
-		Class clz = conditionObj.getClass();
+	public Object getSum(String sumProperty, Criteria criteria) {
+		Class clz = criteria.getClz();
 		Parsed parsed = Parser.get(clz);
 		if (parsed.isSharding()) {
 			throw new ShardingException(
 					"Sharding not supported: getSum(Object conditionObj, String sumProperty, Criteria criteria)");
 		} else {
-			return syncDao.getSum(conditionObj, sumProperty, criteria);
+			return syncDao.getSum(sumProperty, criteria);
 		}
 	}
 
@@ -1051,14 +1066,14 @@ public class Repositories implements IRepository {
 
 	// 20160122 add by cl
 	@Override
-	public Object getCount(Object conditionObj, String sumProperty, Criteria criteria) {
-		Class clz = conditionObj.getClass();
+	public Object getCount(String sumProperty, Criteria criteria) {
+		Class clz = criteria.getClz();
 		Parsed parsed = Parser.get(clz);
 		if (parsed.isSharding()) {
 			throw new ShardingException(
-					"Sharding not supported: getCount(Object conditionObj, String sumProperty, Criteria criteria)");
+					"Sharding not supported: getCount(String sumProperty, Criteria criteria)");
 		} else {
-			return syncDao.getCount(conditionObj, sumProperty, criteria);
+			return syncDao.getCount(sumProperty, criteria);
 		}
 	}
 
@@ -1150,35 +1165,35 @@ public class Repositories implements IRepository {
 	}
 
 	@Override
-	public Pagination<Map<String, Object>> list(CriteriaJoinable criteriaJoinable,
+	public Pagination<Map<String, Object>> list(Criteria.Join criteriaJoin,
 			Pagination<Map<String, Object>> pagination) {
-		Class clz = criteriaJoinable.getClass();
+		Class clz = criteriaJoin.getClass();
 		Parsed parsed = Parser.get(clz);
 
-		// if (criteriaJoinable.isUnReasonable()) {
+		// if (criteriaJoin.isUnReasonable()) {
 		// throw new PersistenceException("No join, try to invoke list(Criteria
 		// criteria,Pagination<Map<String, Object>> pagination)");
 		// }
 
 		if (parsed.isSharding()) {
 			throw new ShardingException(
-					"Sharding not supported: Pagination<Map<String, Object>> list(CriteriaJoinable criteriaJoinable, Pagination<Map<String, Object>> pagination)");
+					"Sharding not supported: Pagination<Map<String, Object>> list(Criteria.Join criteriaJoin, Pagination<Map<String, Object>> pagination)");
 		} else {
-			return syncDao.list(criteriaJoinable, pagination);
+			return syncDao.list(criteriaJoin, pagination);
 		}
 	}
 
 	@Override
-	public List<Map<String, Object>> list(CriteriaJoinable criteriaJoinable) {
+	public List<Map<String, Object>> list(Criteria.Join criteriaJoin) {
 
-		Class clz = criteriaJoinable.getClz();
+		Class clz = criteriaJoin.getClz();
 		Parsed parsed = Parser.get(clz);
 
 		if (parsed.isSharding()) {
 			throw new ShardingException(
-					"Sharding not supported: List<Map<String, Object>> list(CriteriaJoinable criteriaJoinable)");
+					"Sharding not supported: List<Map<String, Object>> list(Criteria.Join criteriaJoin)");
 		} else {
-			return syncDao.list(criteriaJoinable);
+			return syncDao.list(criteriaJoin);
 		}
 	}
 }

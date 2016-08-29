@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import x7.core.bean.Criteria;
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.Criteria.Join;
 import x7.core.web.Pagination;
 
 
@@ -145,9 +145,9 @@ public class SyncDao implements ISyncDao{
 	}
 
 	@Override
-	public Object getSum(Object conditionObj, String sumProperty, Criteria criteria) {
+	public Object getSum(String sumProperty, Criteria criteria) {
 		
-		return this.dao.getSum(conditionObj, sumProperty, criteria);
+		return this.dao.getSum(sumProperty, criteria);
 	}
 
 	@Override
@@ -157,8 +157,8 @@ public class SyncDao implements ISyncDao{
 	}
 
 	@Override
-	public Object getCount(Object conditionObj, String countProperty, Criteria criteria) {
-		return this.dao.getCount(conditionObj, countProperty, criteria);
+	public Object getCount(String countProperty, Criteria criteria) {
+		return this.dao.getCount(countProperty, criteria);
 	}
 
 	@Override
@@ -172,13 +172,13 @@ public class SyncDao implements ISyncDao{
 	}
 
 	@Override
-	public Pagination<Map<String, Object>> list(CriteriaJoinable criteriaJoinable,
+	public Pagination<Map<String, Object>> list(Criteria.Join criteriaJoinable,
 			Pagination<Map<String, Object>> pagination) {
 		return this.dao.list(criteriaJoinable, pagination);
 	}
 
 	@Override
-	public List<Map<String, Object>> list(CriteriaJoinable criteriaJoinable) {
+	public List<Map<String, Object>> list(Criteria.Join criteriaJoinable) {
 		
 		return this.dao.list(criteriaJoinable);
 	}

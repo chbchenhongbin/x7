@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import x7.base.servlet.ServletModelCreator;
 import x7.core.bean.Criteria;
-import x7.core.bean.CriteriaJoinable;
+import x7.core.bean.CriteriaBuilder;
+import x7.core.bean.Criteria.Join;
 import x7.core.config.Configs;
 import x7.core.util.StringUtil;
 import x7.core.web.ModelView;
@@ -37,17 +38,19 @@ public class DevController {
 		
 		Map<String,String> map = ServletModelCreator.createMap(req);
 		
-		String simpleName = map.get(Criteria.CLASS_NAME);
+		String simpleName = map.get(CriteriaBuilder.CLASS_NAME);
 		if (StringUtil.isNullOrEmpty(simpleName)){
 			return ModelView.toast("lose express: class.name=");
 		}
 		
 		String fullName = this.service.getClassFullName(simpleName);
 		if (! StringUtil.isNullOrEmpty(fullName)){
-			map.put(Criteria.CLASS_NAME, fullName);
+			map.put(CriteriaBuilder.CLASS_NAME, fullName);
 		}
 		
-		CriteriaJoinable criteriaJoinable = new CriteriaJoinable(isDev, map);
+		CriteriaBuilder.Joinable criteriaBuilder = CriteriaBuilder.buildJoinable(isDev, map);
+		
+		Criteria.Join criteriaJoinable = (Criteria.Join) criteriaBuilder.get();
 
 		List<Map<String,Object>> list = this.service.test(criteriaJoinable);
 
