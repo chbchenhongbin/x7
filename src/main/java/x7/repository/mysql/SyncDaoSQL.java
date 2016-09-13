@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
@@ -56,29 +57,44 @@ public class SyncDaoSQL implements ISyncDao {
 
 	private DataSource dataSource;
 
-	private DataSource dataSource_Slaver;
+	private DataSource dataSource_R;
 
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
 	public void setDataSource_Slaver(DataSource dataSource_Slaver) {
-		this.dataSource_Slaver = dataSource_Slaver;
+		this.dataSource_R = dataSource_Slaver;
 	}
 
 	private Connection getConnection(boolean isRead) throws SQLException {
 		if (dataSource == null) {
 			System.err.println("No DataSource");
 		}
-		if (dataSource_Slaver == null) {
-			return dataSource.getConnection();
+		if (dataSource_R == null) {
+			return getConnection(dataSource);
 		}
 
 		if (isRead) {
-			return dataSource_Slaver.getConnection();
+			return getConnection(dataSource_R);
+		}
+		
+		return getConnection(dataSource);
+	}
+	
+	private Connection getConnection(DataSource ds) throws SQLException {
+		Connection c = ds.getConnection();
+		
+		if (c == null) {
+			try {
+				TimeUnit.MICROSECONDS.sleep(5);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			return ds.getConnection();
 		}
 
-		return dataSource.getConnection();
+		return c;
 	}
 
 	/**

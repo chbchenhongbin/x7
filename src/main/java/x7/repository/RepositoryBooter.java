@@ -1,10 +1,12 @@
 package x7.repository;
 
+
 import x7.core.config.Configs;
 import x7.repository.mysql.Daos;
 import x7.repository.mysql.SyncDao;
-import x7.repository.mysql.pool.C3P0Pool;
+import x7.repository.mysql.pool.HirakiPool;
 import x7.repository.redis.CacheResolver;
+
 
 public class RepositoryBooter {
 	
@@ -15,6 +17,7 @@ public class RepositoryBooter {
 	private final static String HBASE = "hbase";
 
 	private static RepositoryBooter instance = null;
+	
 	
 	public static void boot() {
 		if (instance == null) {
@@ -31,8 +34,8 @@ public class RepositoryBooter {
 		switch (repository){
 		
 		case MYSQL:
-			C3P0Pool pool = C3P0Pool.getInstance();
-			Daos.init(pool.get(), pool.getSlaver());
+			HirakiPool pool = HirakiPool.getInstance();
+			Daos.init(pool.get(), pool.getR());
 			Repositories.getInstance().setSyncDao(SyncDao.getInstance());
 			break;
 		

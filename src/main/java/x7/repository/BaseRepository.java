@@ -1,9 +1,11 @@
 package x7.repository;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,7 +49,6 @@ public abstract class BaseRepository<T> {
 	private Class<T> clz;
 	
 	public BaseRepository() {
-        
 	}
 	
 	protected Object preMapping(String methodName, Object...s){
@@ -59,9 +60,13 @@ public abstract class BaseRepository<T> {
 		
 		for (Type t : params) {
 			
-			Class ccc = (Class) t;
+//			Class ccc = (Class) t;
+		TypeVariableImpl tv = (TypeVariableImpl)t;
 			
-			System.out.println();
+			System.out.println("ccc " + tv);
+			Class clz = tv.getClass();
+			
+			System.out.println("-------" + clz);
 		}
 		
 		System.out.println(clz);
@@ -770,4 +775,20 @@ public abstract class BaseRepository<T> {
 	}
 	
 	
+	/**
+	 * 手动拼接SQL查询�? 分页
+	 * 
+	 * @param criteria
+	 * @param pagination
+	 * 
+	 */
+	public Pagination<T> list(Object object, Pagination<T> pagination) {
+
+		/*
+		 * FIXME 日志
+		 */
+		return Repositories.getInstance().list(object, pagination);
+	}
+	
+
 }

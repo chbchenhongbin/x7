@@ -1,14 +1,17 @@
 package x7.repository;
 
-import x7.base.util.JsonX;
+import x7.core.bean.CriteriaBuilder;
+import x7.repository.bean.Cat;
 
 public class XxxTester {
 
 	public static void main(String[] args) {
-		Xxx xxx = new Xxx();
-		xxx.setEnd(true);
-		xxx.setFull(true);
-		String test = JsonX.toJson(xxx);
-		System.out.println(test);
+		
+
+		CriteriaBuilder.Joinable joinable = CriteriaBuilder.buildJoinable(Cat.class, "t");
+		joinable.and().eq("name","pussyCat");
+		joinable.xAddKey("t->name.as.n");
+		
+		CriteriaBuilder.parse(joinable.get());
 	}
 }
