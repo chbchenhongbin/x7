@@ -1167,7 +1167,7 @@ public class Repositories implements IRepository {
 	@Override
 	public Pagination<Map<String, Object>> list(Criteria.Join criteriaJoin,
 			Pagination<Map<String, Object>> pagination) {
-		Class clz = criteriaJoin.getClass();
+		Class clz = criteriaJoin.getClz();
 		Parsed parsed = Parser.get(clz);
 
 		// if (criteriaJoin.isUnReasonable()) {
