@@ -21,7 +21,6 @@ import com.mysql.jdbc.Statement;
 import x7.core.bean.BeanElement;
 import x7.core.bean.Criteria;
 import x7.core.bean.CriteriaBuilder;
-import x7.core.bean.Criteria.Join;
 import x7.core.bean.Parsed;
 import x7.core.bean.Parser;
 import x7.core.repository.Persistence;
@@ -858,7 +857,10 @@ public class SyncDaoSQL implements ISyncDao {
 		sql += (" AND " + parsed.getKey(Persistence.KEY_ONE));
 		sql += " = ?";
 
-		int count = getCount(sql.replace(Persistence.PAGINATION, "COUNT(*) count"), idOne);
+		long count = 0;
+		if (! pagination.isScroll()){
+			count = getCount(sql.replace(Persistence.PAGINATION, "COUNT(*) count"), idOne);
+		}
 
 		pagination.setTotalRows(count);
 		int page = pagination.getPage();
@@ -1028,7 +1030,11 @@ public class SyncDaoSQL implements ISyncDao {
 		// sql);
 
 		String countSql = sql.replace(Persistence.PAGINATION, "COUNT(*) count");
-		long count = getCount(countSql, queryMap);
+
+		long count = 0;
+		if (! pagination.isScroll()){
+			count = getCount(countSql, queryMap);
+		}
 
 		pagination.setTotalRows(count);
 		int page = pagination.getPage();
@@ -1117,7 +1123,10 @@ public class SyncDaoSQL implements ISyncDao {
 		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
 
-		long count = getCount(sqlCount, valueList);
+		long count = 0;
+		if (! pagination.isScroll()){
+			count = getCount(sqlCount, valueList);
+		}
 
 		pagination.setTotalRows(count);
 		int page = pagination.getPage();
@@ -1963,8 +1972,10 @@ public class SyncDaoSQL implements ISyncDao {
 		String sqlCount = sqlArr[0];
 		String sql = sqlArr[1];
 
-		long count = getCount(sqlCount, valueList);
-
+		long count = 0;
+		if (! pagination.isScroll()){
+			count = getCount(sqlCount, valueList);
+		}
 		pagination.setTotalRows(count);
 		int page = pagination.getPage();
 		int rows = pagination.getRows();
