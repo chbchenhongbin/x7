@@ -146,7 +146,7 @@ public abstract class BaseRepository<T> {
 		return quantity;
 	}
 
-	public long create(Object obj) {
+	public long create(T obj) {
 		/*
 		 * FIXME 日志
 		 */
@@ -288,7 +288,7 @@ public abstract class BaseRepository<T> {
 	 * 
 	 * @param obj
 	 */
-	public boolean refresh(Object obj) {
+	public boolean refresh(T obj) {
 		return Repositories.getInstance().refresh(obj);
 	}
 
@@ -300,11 +300,11 @@ public abstract class BaseRepository<T> {
 	 * @param conditionMap
 	 * @return true | false
 	 */
-	public boolean refresh(Object obj, Map<String, Object> conditionMap) {
+	public boolean refresh(T obj, Map<String, Object> conditionMap) {
 		return Repositories.getInstance().refresh(obj, conditionMap);
 	}
 
-	public void refreshAsync(Object obj) {
+	public void refreshAsync(T obj) {
 		Repositories.getInstance().refreshAsync(obj);
 	}
 
@@ -315,7 +315,7 @@ public abstract class BaseRepository<T> {
 	 * 
 	 * @param obj
 	 */
-	public void remove(Object obj) {
+	public void remove(T obj) {
 		Repositories.getInstance().remove(obj);
 
 		/*
@@ -471,7 +471,7 @@ public abstract class BaseRepository<T> {
 	 * @param conditionObj
 	 * 
 	 */
-	public List<T> list(Object conditionObj) {
+	public List<T> list(T conditionObj) {
 
 		if (conditionObj instanceof Criteria.Join) {
 			throw new RuntimeException(
@@ -551,7 +551,7 @@ public abstract class BaseRepository<T> {
 		return Repositories.getInstance().getMaxId(clz);
 	}
 
-	public long getMaxId(Object conditionObj) {
+	public long getMaxId(T conditionObj) {
 		return Repositories.getInstance().getMaxId(conditionObj);
 	}
 
@@ -567,7 +567,7 @@ public abstract class BaseRepository<T> {
 		return Repositories.getInstance().getCount(clz, idOne);
 	}
 
-	public long getCount(Object conditonObj) {
+	public long getCount(T conditonObj) {
 		return Repositories.getInstance().getCount(conditonObj);
 	}
 
@@ -576,7 +576,7 @@ public abstract class BaseRepository<T> {
 		return Repositories.getInstance().getOne(conditionObj, orderBy, sc);
 	}
 
-	public T getOne(Object conditionObj) {
+	public T getOne(T conditionObj) {
 
 		List<T> list = Repositories.getInstance().list(conditionObj);
 		if (list.isEmpty())
@@ -592,7 +592,7 @@ public abstract class BaseRepository<T> {
 	 * 
 	 * @param obj
 	 */
-	public void refreshTime(Object obj) {
+	public void refreshTime(T obj) {
 		Repositories.getInstance().refreshTime(obj);
 	}
 
@@ -647,7 +647,7 @@ public abstract class BaseRepository<T> {
 
 		List<T> list = null;
 		if (idList.isEmpty()) {
-			list = new ArrayList();
+			list = new ArrayList<>();
 		} else {
 			list = Repositories.getInstance().in(beanClz, idList);
 		}
@@ -718,11 +718,11 @@ public abstract class BaseRepository<T> {
 		return list.get(0);
 	}
 
-	public Object getSum(Object conditionObj, String sumProperty) {
+	public Object getSum(T conditionObj, String sumProperty) {
 		return Repositories.getInstance().getSum(conditionObj, sumProperty);
 	}
 
-	public Object getSum(Object conditionObj, String sumProperty, Criteria criteria) {
+	public Object getSum(T conditionObj, String sumProperty, Criteria criteria) {
 		return Repositories.getInstance().getSum(sumProperty, criteria);
 	}
 
@@ -764,7 +764,7 @@ public abstract class BaseRepository<T> {
 	 * @param pagination
 	 * 
 	 */
-	public Pagination<T> list(Object object, Pagination<T> pagination) {
+	public Pagination<T> list(T object, Pagination<T> pagination) {
 
 		/*
 		 * FIXME 日志
