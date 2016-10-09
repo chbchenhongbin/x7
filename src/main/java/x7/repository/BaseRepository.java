@@ -1,11 +1,9 @@
 package x7.repository;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,9 +12,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
-import sun.reflect.generics.reflectiveObjects.TypeVariableImpl;
 import x7.core.bean.Criteria;
-import x7.core.bean.Criteria.Join;
 import x7.core.bean.IQuantity;
 import x7.core.bean.IdGenerator;
 import x7.core.bean.Parsed;
@@ -32,8 +28,6 @@ import x7.repository.exception.PersistenceException;
 import x7.repository.mysql.bean.IKeyType;
 import x7.repository.redis.JedisConnector_Persistence;
 
-
-
 /**
  * 
  * 其他模块的Repository建议继承此类
@@ -41,70 +35,60 @@ import x7.repository.redis.JedisConnector_Persistence;
  */
 @Repository
 public abstract class BaseRepository<T> {
-	
+
 	public final static String ID_MAP_KEY = "ID_MAP_KEY";
 
-	public Map<String, String> map = new HashMap<String,String>();
-	
+	public Map<String, String> map = new HashMap<String, String>();
+
 	private Class<T> clz;
-	
+
 	public BaseRepository() {
+		parse();
 	}
 	
-	protected Object preMapping(String methodName, Object...s){
-		System.out.println("----------" + methodName + ", clz = " + clz);
+	private void parse(){
 		
 		Type genType = getClass().getGenericSuperclass();
+
+		Type[] params = ((ParameterizedType) genType).getActualTypeArguments();
 		
-		Type[] params = ((ParameterizedType) genType).getActualTypeArguments();  
+		this.clz = (Class)params[0];
 		
-		for (Type t : params) {
-			
-//			Class ccc = (Class) t;
-		TypeVariableImpl tv = (TypeVariableImpl)t;
-			
-			System.out.println("ccc " + tv);
-			Class clz = tv.getClass();
-			
-			System.out.println("-------" + clz);
-		}
-		
-		System.out.println(clz);
-		
+		System.out.println(this.clz);
+	}
+
+	protected Object preMapping(String methodName, Object... s) {
+
 		boolean isOne = methodName.startsWith("get");
-		
+
 		String sql = map.get(methodName);
-		if (StringUtil.isNullOrEmpty(sql)){
-			
-			
+		if (StringUtil.isNullOrEmpty(sql)) {
+
 			methodName = methodName.replace("list", "").replace("get", "").replace("find", "").replace("By", " where ");
 			methodName = methodName.replace("And", " = ? and ").replace("Or", " = ? or ");
-			
+
 			methodName = methodName.toLowerCase();
-			
+
 			StringBuilder sb = new StringBuilder();
 			sb.append("select * from ").append(methodName).append(" = ?");
-			
+
 			sql = sb.toString();
-			
+
 			map.put(methodName, sql);
-			
+
 		}
 		List<Object> conditionList = Arrays.asList(s);
-		List<T> list = (List<T>) Repositories.getInstance().list(clz ,sql, conditionList);
-		
-		if (isOne){
+		List<T> list = (List<T>) Repositories.getInstance().list(clz, sql, conditionList);
+
+		if (isOne) {
 			if (list.isEmpty())
 				return null;
 			return list.get(0);
 		}
-		
+
 		return list;
 	}
-	
-	private void parse(){
-		System.out.println(this.getClass());
-	}
+
 
 	public void set(byte[] key, byte[] value) {
 		JedisConnector_Persistence.getInstance().set(key, value);
@@ -127,8 +111,7 @@ public abstract class BaseRepository<T> {
 	}
 
 	public long createId(IdGenerator obj) {
-		long id = JedisConnector_Persistence.getInstance().hincrBy(ID_MAP_KEY, obj.getClass().getName(),
-				1);
+		long id = JedisConnector_Persistence.getInstance().hincrBy(ID_MAP_KEY, obj.getClass().getName(), 1);
 
 		if (id == 0) {
 			throw new PersistenceException("UNEXPECTED EXCEPTION WHILE CREATING ID");
@@ -153,17 +136,16 @@ public abstract class BaseRepository<T> {
 		if (reduced < 0) {
 			throw new RuntimeException("reduced quantity must > 0");
 		}
-		
+
 		String mapKey = obj.getClass().getName();
-		
-		int quantity = (int) JedisConnector_Persistence.getInstance().hincrBy(mapKey,
-				obj.getKey(), -reduced);
+
+		int quantity = (int) JedisConnector_Persistence.getInstance().hincrBy(mapKey, obj.getKey(), -reduced);
 
 		obj.setQuantity(quantity);
 
 		return quantity;
 	}
-	
+
 	public long create(Object obj) {
 		/*
 		 * FIXME 日志
@@ -229,7 +211,7 @@ public abstract class BaseRepository<T> {
 
 			if (keyType == null || key == null || "0".equals(key.toString()) || idt == 0)
 				return id;
-			
+
 			IIndexTyped temp = null;
 			try {
 				temp = (IIndexTyped) clzIndex.newInstance();
@@ -279,7 +261,7 @@ public abstract class BaseRepository<T> {
 
 			if (key == null || "0".equals(key.toString()) || idt == 0)
 				continue;
-			
+
 			IIndexTyped temp = null;
 			try {
 				temp = (IIndexTyped) clzIndex.newInstance();
@@ -292,7 +274,6 @@ public abstract class BaseRepository<T> {
 			temp.setKeyOne(IIndexTyped.getKeyOne(type, key));
 			temp.setType(type);
 			temp.setId(idt);
-
 
 			Repositories.getInstance().create(temp);
 		}
@@ -307,18 +288,19 @@ public abstract class BaseRepository<T> {
 	 * 
 	 * @param obj
 	 */
-	public void refresh(Object obj) {
-		Repositories.getInstance().refresh(obj);
+	public boolean refresh(Object obj) {
+		return Repositories.getInstance().refresh(obj);
 	}
-	
+
 	/**
 	 * 带条件更新(默认需要ID, 不需要增加id)<br>
 	 * 不支持无ID更新<br>
+	 * 
 	 * @param obj
 	 * @param conditionMap
 	 * @return true | false
 	 */
-	public boolean refresh(Object obj, Map<String,Object> conditionMap) {
+	public boolean refresh(Object obj, Map<String, Object> conditionMap) {
 		return Repositories.getInstance().refresh(obj, conditionMap);
 	}
 
@@ -426,7 +408,7 @@ public abstract class BaseRepository<T> {
 
 	}
 
-	public List<T> list(Class<T> clz, long idOne) {
+	public List<T> list(long idOne) {
 		/*
 		 * FIXME 日志
 		 */
@@ -449,7 +431,7 @@ public abstract class BaseRepository<T> {
 	 * @param idOne
 	 * 
 	 */
-	public T get(Class<T> clz, long idOne) {
+	public T get(long idOne) {
 		/*
 		 * FIXME 日志
 		 */
@@ -465,7 +447,7 @@ public abstract class BaseRepository<T> {
 	 * @param idOne
 	 * 
 	 */
-	public T get(Class<T> clz, long idOne, long idTwo) {
+	public T get(long idOne, long idTwo) {
 		/*
 		 * FIXME 日志
 		 */
@@ -478,7 +460,7 @@ public abstract class BaseRepository<T> {
 	 * @param clz
 	 * @return
 	 */
-	public List<T> list(Class<T> clz) {
+	public List<T> list() {
 
 		return Repositories.getInstance().list(clz);
 	}
@@ -490,9 +472,10 @@ public abstract class BaseRepository<T> {
 	 * 
 	 */
 	public List<T> list(Object conditionObj) {
-		
-		if (conditionObj instanceof Criteria.Join){
-			throw new RuntimeException("Exception supported, no pagination not to invoke Repositories.getInstance().list(criteriaJoinalbe);");
+
+		if (conditionObj instanceof Criteria.Join) {
+			throw new RuntimeException(
+					"Exception supported, no pagination not to invoke Repositories.getInstance().list(criteriaJoinalbe);");
 		}
 		/*
 		 * FIXME 日志
@@ -503,7 +486,7 @@ public abstract class BaseRepository<T> {
 	/**
 	 * 主键查询 分页
 	 */
-	public Pagination<T> list(Class<T> clz, long idOne, Pagination<T> pagination) {
+	public Pagination<T> list(long idOne, Pagination<T> pagination) {
 
 		Class clzIndex = BeanUtilX.getIndexClass(clz);
 		if (clzIndex != null) {
@@ -515,20 +498,21 @@ public abstract class BaseRepository<T> {
 		return Repositories.getInstance().list(clz, idOne, pagination);
 	}
 
-//	/**
-//	 * 根据对象查找，分页?
-//	 * 
-//	 * @param conditionObj
-//	 * @param pagination
-//	 * 
-//	 */
-//	public Pagination<T> list(Object conditionObj, Pagination<T> pagination) {
-//
-//		/*
-//		 * FIXME 日志
-//		 */
-//		return Repositories.getInstance().list(conditionObj, pagination);
-//	}
+	// /**
+	// * 根据对象查找，分页?
+	// *
+	// * @param conditionObj
+	// * @param pagination
+	// *
+	// */
+	// public Pagination<T> list(Object conditionObj, Pagination<T> pagination)
+	// {
+	//
+	// /*
+	// * FIXME 日志
+	// */
+	// return Repositories.getInstance().list(conditionObj, pagination);
+	// }
 
 	/**
 	 * 手动拼接SQL查询�? 分页
@@ -544,7 +528,6 @@ public abstract class BaseRepository<T> {
 		 */
 		return Repositories.getInstance().list(criteria, pagination);
 	}
-	
 
 	/**
 	 * 获取�?大ID
@@ -553,7 +536,7 @@ public abstract class BaseRepository<T> {
 	 * @param idOne
 	 * 
 	 */
-	public long getMaxId(Class<T> clz, long idOne) {
+	public long getMaxId(long idOne) {
 
 		return Repositories.getInstance().getMaxId(clz, idOne);
 	}
@@ -564,7 +547,7 @@ public abstract class BaseRepository<T> {
 	 * @param clz
 	 * 
 	 */
-	public long getMaxId(Class<T> clz) {
+	public long getMaxId() {
 		return Repositories.getInstance().getMaxId(clz);
 	}
 
@@ -579,11 +562,11 @@ public abstract class BaseRepository<T> {
 	 * @param idOne
 	 * 
 	 */
-	public long getCount(Class<T> clz, long idOne) {
+	public long getCount(long idOne) {
 
 		return Repositories.getInstance().getCount(clz, idOne);
 	}
-	
+
 	public long getCount(Object conditonObj) {
 		return Repositories.getInstance().getCount(conditonObj);
 	}
@@ -618,7 +601,7 @@ public abstract class BaseRepository<T> {
 	 * 
 	 * @param clz
 	 */
-	public void refreshCache(Class clz) {
+	public void refreshCache() {
 		Repositories.getInstance().refreshCache(clz);
 	}
 
@@ -655,18 +638,18 @@ public abstract class BaseRepository<T> {
 		List<IIndexTyped> idxList = idxPagination.getList();
 
 		List<Object> idList = new ArrayList<Object>();
-		
+
 		for (IIndexTyped idx : idxList) {
-			if (idx.getId() != 0){
+			if (idx.getId() != 0) {
 				idList.add(idx.getId());
 			}
 		}
-		
+
 		List<T> list = null;
-		if (idList.isEmpty()){
+		if (idList.isEmpty()) {
 			list = new ArrayList();
-		}else{
-			list = in(beanClz, idList);
+		} else {
+			list = Repositories.getInstance().in(beanClz, idList);
 		}
 
 		pagination.setTotalRows(totalRows);
@@ -685,22 +668,21 @@ public abstract class BaseRepository<T> {
 		Class<T> beanClz = BeanUtilX.getBeanClass(index);
 
 		List<IIndexTyped> idxList = Repositories.getInstance().list(index);
-		
 
 		List<Object> idList = new ArrayList<Object>();
-		
+
 		for (IIndexTyped idx : idxList) {
-			
-			if (idx.getId() != 0){
+
+			if (idx.getId() != 0) {
 				idList.add(idx.getId());
 			}
 		}
-		
+
 		if (idList.isEmpty())
 			return new ArrayList();
-		
-		List<T> list = in(beanClz, idList);
-		
+
+		List<T> list = Repositories.getInstance().in(beanClz, idList);
+
 		return list;
 	}
 
@@ -716,18 +698,19 @@ public abstract class BaseRepository<T> {
 		List<IIndexTyped> idxList = Repositories.getInstance().list(index);
 
 		List<Object> idList = new ArrayList<Object>();
-		
+
 		for (IIndexTyped idx : idxList) {
-//			T t = get(beanClz, idx.getId()); // 按主键查询(唯一主键，BIG TABLE, SHARDING)
-//			if (t != null)
-//				list.add(t);
-			
-			if (idx.getId() != 0){
+			// T t = get(beanClz, idx.getId()); // 按主键查询(唯一主键，BIG TABLE,
+			// SHARDING)
+			// if (t != null)
+			// list.add(t);
+
+			if (idx.getId() != 0) {
 				idList.add(idx.getId());
 			}
 		}
-		
-		List<T> list = in(beanClz, idList);
+
+		List<T> list = Repositories.getInstance().in(beanClz, idList);
 
 		if (list.isEmpty())
 			return null;
@@ -738,27 +721,27 @@ public abstract class BaseRepository<T> {
 	public Object getSum(Object conditionObj, String sumProperty) {
 		return Repositories.getInstance().getSum(conditionObj, sumProperty);
 	}
-	
+
 	public Object getSum(Object conditionObj, String sumProperty, Criteria criteria) {
 		return Repositories.getInstance().getSum(sumProperty, criteria);
 	}
-    
-	public Object getCount(String sumProperty, Criteria criteria){
+
+	public Object getCount(String sumProperty, Criteria criteria) {
 		return Repositories.getInstance().getCount(sumProperty, criteria);
 	}
-	
-	public List<T> in (Class<T> clz, List<Object> inList){
+
+	public List<T> in(List<Object> inList) {
 		if (inList.isEmpty())
 			return new ArrayList<T>();
 		return Repositories.getInstance().in(clz, inList);
 	}
-	
-	public List<T> in (Class<T> clz, String inProperty, List<Object> inList){
+
+	public List<T> in(String inProperty, List<Object> inList) {
 		if (inList.isEmpty())
 			return new ArrayList<T>();
 		return Repositories.getInstance().in(clz, inProperty, inList);
 	}
-	
+
 	/**
 	 * 手动拼接SQL查询�? 分页
 	 * 
@@ -773,8 +756,7 @@ public abstract class BaseRepository<T> {
 		 */
 		return Repositories.getInstance().list(criteria, pagination);
 	}
-	
-	
+
 	/**
 	 * 手动拼接SQL查询�? 分页
 	 * 
@@ -789,6 +771,5 @@ public abstract class BaseRepository<T> {
 		 */
 		return Repositories.getInstance().list(object, pagination);
 	}
-	
 
 }
