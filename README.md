@@ -11,6 +11,8 @@ config
 
 x7-sample
 
-to develop java project quickly
+--------------------------------------
+to develop java project quickly 
+--------------------------------------
 
-jdk 1.8
+jdk 1.8, spring mvc, spring boot
