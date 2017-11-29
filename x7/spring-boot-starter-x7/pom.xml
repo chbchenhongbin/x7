@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>spring-boot-starter-x7</artifactId>
+  <packaging>jar</packaging>
+
+  <name>spring-boot-starter-x7</name>
+  <url>http://github.com/x7-framework/x7</url>
+
+  <parent>
+  	<groupId>x7</groupId>
+  	<artifactId>x7</artifactId>
+  	<version>0.0.7</version>
+  </parent>
+  	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+	</properties>
+
+  <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+   		<dependency>
+			<groupId>x7</groupId>
+			<artifactId>x7-core</artifactId>
+			<version>0.0.7</version>
+		</dependency>
+		<dependency>
+			<groupId>x7</groupId>
+			<artifactId>x7-config</artifactId>
+			<version>0.0.7</version>
+		</dependency>
+		<dependency>
+			<groupId>x7</groupId>
+			<artifactId>x7-repository</artifactId>
+			<version>0.0.7</version>
+		</dependency>
+    </dependencies>
+
+</project>

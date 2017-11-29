@@ -1,2 +1,4 @@
-# x7-repository
-ORM, mysql only, 2 level cache(redis), mysql sharding supported
+x7
+x7-repository
+to develop java project quickly
+jdk 1.8
